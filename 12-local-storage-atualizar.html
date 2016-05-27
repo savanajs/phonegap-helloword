@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<title>Cadastro de Contatos</title>
+</head>
+<body>
+
+<h1>Atualizar contato</h1>
+<input id="txFirstName" type="text" placeholder="Nome"><br/>
+<input id="txLastName" type="text" placeholder="Sobre nome"><br/>
+<input id="txPhone" type="text" placeholder="Telefone"><br/>
+<input type="button" value="Atualizar" onClick="AtualizarRegistro()">
+<input type="button" value="Cancelar" onClick="VoltarIndex()"><br>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+
+// <p>No javascript, a primeira coisa que fazemos é criar a função <strong>_GET</strong> que recupera parâmetros da URL. Veja:</p>
+
+          function _GET(name)
+          {
+            var url   = window.location.search.replace("?", "");
+            var itens = url.split("&");
+
+            for(n in itens)
+            {
+              if( itens[n].match(name) )
+              {
+                return decodeURIComponent(itens[n].replace(name+"=", ""));
+              }
+            }
+            return null;
+          }
+
+// Ao executar a página é preciso montar o formulário com os dados para edição, então chamamos a função <strong>montarFormulario</strong> no evento <strong>deviceready</strong>.
+
+          document.addEventListener("deviceready", montarFormulario, false);
+
+          // Veja que primeiro pegamos a chave do registro que recebemos via parâmetro na URL:
+
+          function montarFormulario(){
+            var chave = _GET('id');
+
+            // Se a chave for diferente de NULL:
+            if (chave != null)
+              contatoJson = window.localStorage.getItem(chave); // <p>Usamos o método <strong>getItem</strong> para pegar o registro no <strong>localStorage</strong>:</p>
+
+              // Convertemos para array
+              contatoArray = JSON.parse(contatoJson);
+
+              document.getElementById('txFirstName').value = contatoArray.FirstName;
+              document.getElementById('txLastName').value = contatoArray.LastName;
+              document.getElementById('txPhone').value = contatoArray.Phone;
+          }
+
+          function AtualizarRegistro(){
+
+              var chave = _GET('id');
+              var contatoJson = MontarJson();
+
+              window.localStorage.setItem(chave, contatoJson);
+
+              alert("Contato Atualizado com sucesso");
+
+              VoltarIndex();
+          }
+
+          function MontarJson(){
+              var nome = document.getElementById('txFirstName').value;
+              var sobrenome = document.getElementById('txLastName').value;
+              var telefone = document.getElementById('txPhone').value;
+
+              var contato = JSON.stringify({
+                FirstName : nome,
+                LastName : sobrenome,
+                Phone : telefone
+              });
+
+              return contato;
+            }
+
+          function VoltarIndex(){
+              location.href = "12-local-storage.html";
+          }
+
+</script>
+</body>
+</html>

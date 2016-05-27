@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<title>Camera Get Picture</title>
+</head>
+<body>
+<input type="button" value="Capturar Imagem" onClick="capturarImagem()"><br/>
+<a href="index.html">Voltar</a><br/>
+
+<img id="htmlImagem" width="100%"></img>
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+
+function capturarImagem(){
+    navigator.camera.getPicture(onSuccess, onFail, 
+        {
+           destinationType: Camera.DestinationType.FILE_URI, // Endereç oda img capturada
+           sourceType: Camera.PictureSourceType.CAMERA // A imagem teve ser extraida da camera e não da galeria
+        }
+    )
+}
+
+function onSuccess(imageURL){
+    var image = document.getElementById('htmlImagem');
+    image.src = imageURL;
+}
+
+function onFail(msg){
+   alert("Erro: " + msg);
+}
+
+</script>
+</body>
+</html>

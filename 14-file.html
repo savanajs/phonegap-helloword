@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<title>Arquivos</title>
+</head>
+<body>
+<textarea cols="30" rows="8" id="conteudo"></textarea>
+<input type="button" value="Gravar" onClick="requireFileSystem()">
+
+<script type="text/javascript" src="cordova.js"></script>
+<script type="text/javascript">
+
+           // Escrita
+          // Pega do arquivo e coloca na textarea
+         //------------------------------------------------------------------------
+
+         // Requesita os arquivos no sistema
+         function requireFileSystem() {
+             window.requestFileSystem(LocalFileSystem.PERSISTENT,0, pegarArquivo, fail);
+         }
+
+         // directoryEntry - Utiliza para pegar o arquivo em disco
+         function pegarArquivo(directoryEntry){
+            // Pega o araquivo
+            directoryEntry.root.getFile('texto.txt',{create:true, exclusive:false}, sucess, fail); // Se o arquivo existir não sera criado e não aocrre erro
+         }
+
+         function sucess(fileEntry){
+            fileEntry.createWriter(win, fail);
+         }
+
+         function win(writer){
+            writer.onwrite = alertaSucesso;
+            writer.onerror = fail;
+
+            var conteudo = document.getElementById('conteudo').value;
+
+            writer.write(conteudo); // escreve o arquivo contendo as infos do form
+         };
+
+         function alertaSucesso(evt){
+            alert('Conteúdo cadastrado com sucesso');
+         };
+
+         function fail(){
+            alert('Erro no processo');
+         }
+
+
+           // Leitura
+          // Pega do arquivo e coloca na textarea
+         //------------------------------------------------------------------------
+
+         document.addEventListener("deviceready", requireFileSystemRead, false);
+
+         // Requesita os arquivos no sistema
+         function requireFileSystemRead() {
+            window.requestFileSystem(LocalFileSystem.PERSISTENT,0, pegarArquivoRead, fail);
+         }
+
+         function pegarArquivoRead(directoryEntry){
+            directoryEntry.root.getFile('texto.txt',{create:true, exclusive:false}, sucessRead, fail);
+         };
+
+         // fileEntry pega o arquivo
+         function sucessRead(fileEntry){
+            fileEntry.file(winRead, fail);
+         }
+
+        function winRead(file){
+            // Sera lido o arquivo
+            var reader = new FileReader();
+
+            reader.onloadend=function(evt){
+                document.getElementById('conteudo').value = reader.result;
+            };
+
+            reader.onerror= fail;
+            // O método readAsText lê o arquivo e retorna para a função chamada pela propriedade <strong>onloadend</strong> em formato texto:  
+            reader.readAsText(file);
+        };
+
+
+</script>
+</body>
+</html>

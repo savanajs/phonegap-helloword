@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <title>Cadastro SQLite</title>
+</head>
+
+<body>
+    <h1>Cadastro de Contatos</h1>
+    <input id="txFirstName" type="text" placeholder="Nome">
+    <br/>
+    <input id="txLastName" type="text" placeholder="Sobre nome">
+    <br/>
+    <input id="txPhone" type="text" placeholder="Telefone">
+    <br/>
+    <input type="button" value="Adicionar" onClick="AddValueToDB()">
+    <input type="button" value="Refresh" onClick="ListDBValues()">
+    <br/>
+    <br/>
+    <span style="font-weight:bold;">Registros cadastrados:</span>
+    <span id="lbUsers"></span>
+    <script type="text/javascript" src="cordova.js"></script>
+
+    <script type="text/javascript">
+
+        // Quanado o device carregar chama "iniciarBanco"
+        document.addEventListener("deviceready",  iniciarBanco, false);
+
+        // Variavel com parametros para iniciar banco
+        var db;
+        var shortName = 'WebSqlDB';
+        var version = '1.0';
+        var displayName = 'WebSqlDB';
+        var maxSize = 65535;
+
+        function iniciarBanco() {
+             
+            // Verifica se o device possui suporte SQL LITE
+            if (!window.openDatabase) {
+                alert('Navegador não suporte SQLite.');
+                return;
+            }
+            
+            // Inicia a coneção com o banco
+            db = openDatabase(shortName, version, displayName, maxSize);
+
+            // Recebe uma função que tera o codigo que sera executado no banco
+            db.transaction(function(tx) {
+                // Metodo que executa o slq
+                tx.executeSql('CREATE TABLE IF NOT EXISTS User(UserId INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, FirstName TEXT NOT NULL, LastName TEXT NOT NULL, Phone TEXT NOT NULL)', [], nullHandler, errorHandler);
+            }, errorHandler, successCallBack);
+
+           
+            ListDBValues();
+
+        }
+
+        // Executa a consulta dos registros existentes no banco
+
+        function ListDBValues() {
+
+           if (!window.openDatabase) {
+            alert('Navegador não suporte SQLite.');
+            return;
+           }
+
+           db.transaction(function(transaction) {
+             transaction.executeSql('SELECT * FROM User;', [],
+               mostrarRegistros ,errorHandler);
+           });
+
+           return;
+
+        }
+
+        // Monta a tabela e exibi na tela
+        function mostrarRegistros(transaction, result){
+
+          var lbUsers = document.getElementById("lbUsers");
+          var lista = '<table>';
+
+          if (result != null && result.rows != null) {
+
+            for (var i = 0; i < result.rows.length; i++) {
+              var row = result.rows.item(i);
+               lista = lista + '<tr><td>' + row.UserId + '</td><td>' + row.FirstName+ '</td><td>' + row.LastName + '</td><td>' + row.Phone + '</td>';
+               lista = lista + "<td><a href='11-sqlLite-atualizar.html?id=" + row.UserId + "'><img src='img/update.png' /></a></td>";
+               lista = lista + "<td><img src='img/delete.png' id='" +  row.UserId + "' onclick='apagar(this.id)' /></td></tr>";
+            }
+
+            lista = lista + "</table>";
+            lbUsers.innerHTML = lista;
+          }
+
+        }
+
+        // Adiciona um registo no BD
+
+        function AddValueToDB() {
+
+           if (!window.openDatabase) {
+             alert('Navegador não suporte SQLite.');
+             return;
+           }
+
+           var nome = document.getElementById('txFirstName').value;
+           var sobrenome = document.getElementById('txLastName').value;
+           var telefone = document.getElementById('txPhone').value;
+
+           db.transaction(function(transaction) {
+             transaction.executeSql('INSERT INTO User(FirstName, LastName, Phone) VALUES (?,?,?)', [nome, sobrenome, telefone], nullHandler,errorHandler);
+             },errorHandler,successCallBack);
+
+           ListDBValues();
+
+           return false;
+
+        }
+
+        function apagar(registro){
+
+           if (!window.openDatabase) {
+             alert('Navegador não suporte SQLite.');
+             return;
+           }
+
+           db.transaction(function(transaction) {
+             transaction.executeSql('DELETE FROM User WHERE UserId = ?', [registro],
+               successCallBack ,errorHandler);
+           },errorHandler,nullHandler);
+
+           ListDBValues();
+
+           return false;
+        }
+
+        function successCallBack() {
+           alert("Operação realizada com sucesso");
+        }
+
+        function errorHandler(error) {
+           alert('Código do erro: ' + error.code);
+        }
+
+        function nullHandler(){};
+    </script>
+
+</body>
+
+</html>

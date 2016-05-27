@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+    <title>localStorage</title>
+</head>
+
+<body>
+    <h1>Cadastro de Contatos</h1>
+    <input id="txFirstName" type="text" placeholder="Nome">
+    <br/>
+    <input id="txLastName" type="text" placeholder="Sobre nome">
+    <br/>
+    <input id="txPhone" type="text" placeholder="Telefone">
+    <br/>
+    <input type="button" value="Adicionar" onClick="AddValue()">
+    <input type="button" value="Refresh" onClick="listarRegistros()">
+    <br>
+    <br>
+    <span style="font-weight:bold;">Registros cadastrados:</span>
+    <span id="lbUsers"></span>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript">
+    document.addEventListener("deviceready", listarRegistros, false);
+
+    /*
+    Passo 1: Usuário preenche os dados e clica no botão adicionar, chamando assim a função addValue
+    Passo 2: A função addValue chama a função MontarJson que pega os dados do formulário HTML e retorna em formato JSON;
+    Passo 3: A função addValue realiza uma chamada a função GerarChave, que retornará uma chave válida e guardará o índice no localStorage;
+    No passo 4: A função GerarChave pede para a função getIndice o estado atual do índice;
+    Na função addValue, depois que ela possui os dados em JSON e a Chave válida gravada no índice, basta gravar no localStorage.
+    */
+
+    function getIndice() {
+        // Pegar o indice no formato JSON do nosso LS, e quardamos na variavel indiceJSON
+        indiceJson = window.localStorage.getItem("indice");
+        console.log(indiceJson) // => [0,1]
+        // Transforma o resultado do json em array
+        indiceArray = JSON.parse(indiceJson);
+        console.log(indiceArray) // => [0,1]
+        return indiceArray;
+    }
+
+    // Criar indice
+    // Funcao para criar um novo contato
+    // Grava uma nova chave e retorna o valor
+    function GerarChave() {
+        // Retorna o estado atual do indice
+        indiceArray = getIndice();
+
+        if (indiceArray == null) { // indice não existe
+            window.localStorage.setItem("indice", '[0]'); // Cadastra como default
+            novo = 0;
+        } else {
+            novo = indiceArray.length; // conta quantos indices tem
+            indiceArray.push(novo); // Adice um valor array
+            indiceJson = JSON.stringify(indiceArray); // Converte para json
+            window.localStorage.setItem("indice", indiceJson); // Cadastra novo indice no LS
+        }
+
+        return novo;
+    }
+
+    // Adiciona um novo registro no LS
+
+    function AddValue() {
+        // Pega os dados o forma e transforma em json
+        var contatoJson = MontarJson();
+        // Retorna uma chave valida e ja enserida no indice do LS
+        var chave = GerarChave();
+
+        // As infos do usuario no indice do json retornado
+        window.localStorage.setItem(chave, contatoJson);
+
+        alert("Contato cadastrado com sucesso");
+
+        listarRegistros();
+
+    }
+
+    // Pega os dados do form para transformar em json
+
+    function MontarJson() {
+        var nome = document.getElementById('txFirstName').value;
+        var sobrenome = document.getElementById('txLastName').value;
+        var telefone = document.getElementById('txPhone').value;
+
+        var contatoJson = JSON.stringify({
+            FirstName: nome,
+            LastName: sobrenome,
+            Phone: telefone
+        });
+
+        return contatoJson;
+
+    }
+
+    // função responsável por listar os registros existentes
+
+    function listarRegistros() {
+
+        indiceArray = getIndice();
+
+        var lista = '<table>';
+
+        for (var i = 0; i < indiceArray.length; i++) {
+            // Definimos que a chave do registro será a posição do índice no valor atual do contador i:
+            chave = indiceArray[i];
+
+            if (chave != null) {
+                contatoJson = window.localStorage.getItem(chave);
+
+                contatoArray = JSON.parse(contatoJson);
+
+                lista = lista + '<tr><td>' + chave + '</td><td>' + contatoArray.FirstName + '</td><td>' + contatoArray.LastName + '</td><td>' + contatoArray.Phone + '</td>';
+                lista = lista + "<td><a href='12-local-storage-atualizar.html?id=" + chave + "'><img src='img/update.png' /></a></td>";
+                lista = lista + "<td><img src='img/delete.png' id='" + chave + "' onclick='apagar(this.id)' /></td></tr>";
+            }
+        }
+
+        lista = lista + "</table>";
+
+        lbUsers.innerHTML = lista;
+
+    }
+
+    // Apagar os registros
+    // Primeiro removemos o registro do <strong>localstorage</strong> com método <strong>removeItem</strong>.
+    function apagar(chave){
+      window.localStorage.removeItem(chave);
+
+      ApagarChave(chave);
+
+      alert("Contato apagado com sucesso");
+
+      listarRegistros();
+
+    }
+    
+    // E então chamamos a função <strong>ApagarChave</strong> que atribui o valor <strong>null</strong> a posição do índice correspondente ao registro:
+    function ApagarChave(chave){
+      // <p>Note que primeiro usamos a função <strong>getIndice</strong> para receber o índice completo em array:</p>
+      indiceArray = getIndice();
+      
+      // Depois atribuímos <strong>NULL</strong> a posição correspondente ao registro que foi excluído:
+      indiceArray[chave] = null;
+      
+      // Convertemos o array novamente para <strong>JSON</strong>:
+      indiceJson = JSON.stringify(indiceArray);
+
+      // E gravamos no <strong>localStorage</strong>:
+      window.localStorage.setItem("indice", indiceJson);
+
+    }
+    </script>
+</body>
+
+</html>

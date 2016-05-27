@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+<title>Atualizar Registro</title>
+</head>
+<body>
+<h1>Atualizar</h1>
+<input id="txFirstName" type="text" placeholder="FirstName"><br/>
+<input id="txLastName" type="text" placeholder="Last Name"><br/>
+<input id="txPhone" type="text" placeholder="Telefone"><br/>
+<input type="button" value="Atualizar" onClick="AtualizarDB()">
+<input type="button" value="Cancelar" onClick="VoltarIndex()">
+
+<script type="text/javascript" src="cordova.js"></script>
+
+<script type="text/javascript">
+
+          // Pega o parametro da url
+
+          function _GET(name)
+          {
+            var url   = window.location.search.replace("?", "");
+            var itens = url.split("&");
+
+            for(n in itens)
+            {
+              if( itens[n].match(name) )
+              {
+                return decodeURIComponent(itens[n].replace(name+"=", ""));
+              }
+            }
+            return null;
+          }
+
+        // Quanado o device carregar chama "montarCadastro"
+        document.addEventListener("deviceready", montarCadastro, false);
+
+        // Variavel com parametros para iniciar banco
+        var db;
+        var shortName = 'WebSqlDB';
+        var version = '1.0';
+        var displayName = 'WebSqlDB';
+        var maxSize = 65535;
+
+        function montarCadastro(){
+
+           if (!window.openDatabase) {
+             alert('Navegador não suporte SQLite.');
+             return;
+           }
+           
+           // Abre a conexao
+           db = openDatabase(shortName, version, displayName,maxSize);
+
+          // Pega o id no parametro da url
+           var UserId = _GET('id');
+
+           db.transaction(function(transaction) {
+             transaction.executeSql('SELECT * FROM User WHERE UserId = ?', [UserId],
+               setDados ,errorHandler);
+           });
+
+        }
+
+        // Pega os dados do bd e atribui no form do usuario
+
+        function setDados(transaction, result){
+
+           var nome = document.getElementById('txFirstName');
+           var sobrenome = document.getElementById('txLastName');
+           var telefone = document.getElementById('txPhone');
+
+           nome.value = result.rows.item(0).FirstName;
+           sobrenome.value = result.rows.item(0).LastName;
+           telefone.value = result.rows.item(0).Phone;
+        }
+
+        // Pega os valores dos inputs e add no banco de dados
+        function AtualizarDB(){
+
+           if (!window.openDatabase) {
+             alert('Navegador não suporte SQLite.');
+             return;
+           }
+
+           var UserId = _GET('id');
+           var nome = document.getElementById('txFirstName').value;
+           var sobrenome = document.getElementById('txLastName').value;
+           var telefone = document.getElementById('txPhone').value;
+
+
+           db.transaction(function(transaction) {
+             transaction.executeSql('UPDATE User SET FirstName = ?, LastName = ?, Phone = ? WHERE UserId = ?', [nome, sobrenome, telefone, UserId],
+               AtualizadoSucesso ,errorHandler);
+           });
+
+        }
+
+        function AtualizadoSucesso(){
+          alert('Atualizado com sucesso');
+          location.href = "11-sqlLite.html";
+        }
+
+        function errorHandler(error) {
+           alert('Error: ' + error.code);
+        }
+
+        function VoltarIndex(){
+           location.href = "11-sqlLite.html";
+        }
+    </script>
+
+</body>
+</html>
